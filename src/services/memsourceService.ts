@@ -7,14 +7,14 @@ export class MemsourceService {
   }
 
   sendTranslationJob = async (
-    pageName: string,
+    projectName: string,
     sourceLocale: string,
     targetLocales: string[],
     payload: object
   ): Promise<string> => {
     let jobUUID = '';
     const projectUUID = await this.memsourceClient.createProject(
-      this.generateProjectName(pageName, sourceLocale, targetLocales),
+      projectName,
       sourceLocale,
       targetLocales
     );
@@ -26,15 +26,5 @@ export class MemsourceService {
     );
 
     return jobUUID;
-  };
-
-  private generateProjectName = (
-    pageName: string,
-    sourceLocale: string,
-    targetLocales: string[]
-  ): string => {
-    return `MLP ${pageName} - ${sourceLocale.toLowerCase()} to ${targetLocales.join(
-      ' '
-    )} ${new Date().toISOString()}`;
   };
 }
