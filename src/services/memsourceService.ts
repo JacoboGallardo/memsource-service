@@ -12,19 +12,16 @@ export class MemsourceService {
     targetLocales: string[],
     payload: object
   ): Promise<string> => {
-    let jobUUID = '';
     const projectUUID = await this.memsourceClient.createProject(
       projectName,
       sourceLocale,
       targetLocales
     );
 
-    jobUUID = await this.memsourceClient.createJob(
+    return await this.memsourceClient.createJob(
       projectUUID,
       targetLocales,
       payload
     );
-
-    return jobUUID;
   };
 }
