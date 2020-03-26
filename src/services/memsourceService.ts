@@ -7,23 +7,34 @@ export class MemsourceService {
   }
 
   sendTranslationJob = async (
+    pageName: string,
     sourceLocale: string,
     targetLocales: string[],
-    payload: JSON,
-  ): Promise<void> => {
+    payload: object
+  ): Promise<string> => {
+    let jobUUID = '';
     const projectUUID = await this.memsourceClient.createProject(
-      this.generateProjectName(payload),
+      this.generateProjectName(pageName, sourceLocale, targetLocales),
       sourceLocale,
-      targetLocales,
+      targetLocales
     );
 
-    // 1 - Create the project
-    // 2 - Cache the project UUID
-    // 3 - Create the job linked to the project UUID
-    // 4 - Cache the job UUID with the payload so it can be downloaded afterwards
+    jobUUID = await this.memsourceClient.createJob(
+      projectUUID,
+      targetLocales,
+      payload
+    );
+
+    return jobUUID;
   };
 
-  private generateProjectName = (payload: JSON): string => {
-    return 'SOME_NAME_TO_BE_CHANGED';
+  private generateProjectName = (
+    pageName: string,
+    sourceLocale: string,
+    targetLocales: string[]
+  ): string => {
+    return `MLP ${pageName} - ${sourceLocale.toLowerCase()} to ${targetLocales.join(
+      ' '
+    )} ${new Date().toISOString()}`;
   };
 }

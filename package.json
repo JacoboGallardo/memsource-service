@@ -31,7 +31,9 @@
   "author": "Jakub Synowiec <github@jakubsynowiec.info>",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/jest-when": "^2.7.0",
     "axios": "^0.19.2",
+    "jest-when": "^2.7.0",
     "tslib": "~1.10.0"
   }
 }
