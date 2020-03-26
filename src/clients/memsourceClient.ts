@@ -1,4 +1,16 @@
-import axios from 'axios';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import axios, { AxiosRequestConfig } from 'axios';
+
+interface CreateProjectPayload {
+  name: string;
+  sourceLang: string;
+  targetLangs: string[];
+}
+
+interface CreateProjectParameters {
+  payload: CreateProjectPayload;
+  config: AxiosRequestConfig;
+}
 
 export class MemsourceClient {
   private authorizationToken: string;
@@ -12,23 +24,16 @@ export class MemsourceClient {
     sourceLocale: string,
     targetLocales: string[]
   ): Promise<string> => {
-    const config = {
-      headers: {
-        Authorization: `Bearer ${this.authorizationToken}`,
-        'Content-Type': 'application/json'
-      }
-    };
-
-    const bodyParameters = {
+    const { payload, config } = this.getCreateProjectParameters(
       name,
-      sourceLang: this.convertToMemsourceLocale(sourceLocale),
-      targetLangs: targetLocales.map(this.convertToMemsourceLocale)
-    };
+      sourceLocale,
+      targetLocales
+    );
 
     try {
       const result = await axios.post(
         'https://cloud.memsource.com/web/api2/v1/projects',
-        bodyParameters,
+        payload,
         config
       );
 
@@ -44,7 +49,24 @@ export class MemsourceClient {
     targetLocales: string[],
     jsonToTranslate: object
   ): Promise<string> => {
-    const config = {
+    try {
+      const result = await axios.post(
+        `https://cloud.memsource.com/web/api2/v1/projects/${projectUUID}/jobs`,
+        jsonToTranslate,
+        this.getCreateJobConfig(targetLocales)
+      );
+
+      return result.data.uid;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  private getCreateJobConfig = (
+    targetLocales: string[]
+  ): AxiosRequestConfig => {
+    return {
       headers: {
         Authorization: `Bearer ${this.authorizationToken}`,
         'Content-Type': 'application/octet-stream',
@@ -54,19 +76,41 @@ export class MemsourceClient {
         })
       }
     };
+  };
 
-    try {
-      const result = await axios.post(
-        `https://cloud.memsource.com/web/api2/v1/projects/${projectUUID}/jobs`,
-        jsonToTranslate,
-        config
-      );
+  private getCreateProjectParameters = (
+    name: string,
+    sourceLocale: string,
+    targetLocales: string[]
+  ): CreateProjectParameters => {
+    const config = this.getCreateProjectConfig();
+    const payload = this.getCreateProjectPayload(
+      name,
+      sourceLocale,
+      targetLocales
+    );
+    return { payload, config };
+  };
 
-      return result.data.uid;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+  private getCreateProjectPayload = (
+    name: string,
+    sourceLocale: string,
+    targetLocales: string[]
+  ): CreateProjectPayload => {
+    return {
+      name,
+      sourceLang: this.convertToMemsourceLocale(sourceLocale),
+      targetLangs: targetLocales.map(this.convertToMemsourceLocale)
+    };
+  };
+
+  private getCreateProjectConfig = (): AxiosRequestConfig => {
+    return {
+      headers: {
+        Authorization: `Bearer ${this.authorizationToken}`,
+        'Content-Type': 'application/json'
+      }
+    };
   };
 
   private convertToMemsourceLocale = (locale: string): string => {
